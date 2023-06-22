@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Exec=qruler
+Icon=qruler
+Categories=Qt;Utility;
+
+#TRANSLATIONS_DIR=resources/translations

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.6)
-project(QRuler VERSION 0.1.0 LANGUAGES CXX)
+project(qruler VERSION 0.1.0 LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -10,9 +10,17 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt5 COMPONENTS Widgets LinguistTools REQUIRED)
+option(UPDATE_TRANSLATIONS "Update source translations" OFF)
 
-set(TS_FILES resources/translations/qruler_it_IT.ts)
+find_package(Qt5 COMPONENTS Widgets LinguistTools REQUIRED)
+include(GNUInstallDirs REQUIRED)
+
+set(APPSTREAM_ID "qruler")
+set(DESKTOP_FILE_IN
+    resources/${APPSTREAM_ID}.desktop.in
+)
+
+#set(TS_FILES resources/translations/qruler_it_IT.ts)
 
 set(SRC_FILES
     src/dialogprefs.hpp
@@ -25,12 +33,37 @@ set(SRC_FILES
     src/application.hpp
     src/application.cpp
     resources/resources.qrc
-    ${TS_FILES}
 )
+
+# Translations
+#===============================================================================
+set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+set(LXQT_CMAKE_MODULES_DIR "${CMAKE_MODULE_PATH}/LXQTBuildTools")
+
+include(LXQTBuildTools/LXQtTranslateDesktop)
+include(LXQTBuildTools/LXQtTranslateTs)
+
+lxqt_translate_ts(QM_FILES
+    UPDATE_TRANSLATIONS ${UPDATE_TRANSLATIONS}
+    SOURCES ${SOURCE_FILES}
+    TRANSLATION_DIR "resources/translations"
+    INSTALL_DIR ${CMAKE_INSTALL_DATADIR}/${CMAKE_PROJECT_NAME}/translations
+)
+
+lxqt_translate_desktop(DESKTOP_FILE
+    SOURCES ${DESKTOP_FILE_IN}
+    TRANSLATION_DIR "resources/translations"
+    USE_YAML
+)
+qt5_wrap_ui(UI_SOURCE ${UI_FILES})
+set_property(SOURCE ${UI_SOURCE} PROPERTY SKIP_AUTOMOC ON)
+#qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR/resources} ${TS_FILES})
+
 add_executable(${CMAKE_PROJECT_NAME}
     ${SRC_FILES}
+    ${QM_FILES}
+    ${DESKTOP_FILE}
 )
-qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE
     Qt5::Widgets
@@ -48,8 +81,7 @@ if (UNIX AND NOT APPLE)
         DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/scalable/apps)
     install (FILES resources/linux/${APPSTREAM_BASENAME}.appdata.xml
         DESTINATION ${CMAKE_INSTALL_DATADIR}/metainfo)
-    install (FILES resources/linux/${APPSTREAM_BASENAME}.desktop
+    install(FILES ${DESKTOP_FILE}
         DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
-#   install (FILES ${QM_FILES}
-#       DESTINATION ${CMAKE_INSTALL_PREFIX}/share/${APP_NAME}/translations)
+    install (FILES ${QM_FILES}       DESTINATION ${CMAKE_INSTALL_PREFIX}/share/${APP_NAME}/translations)
 endif()

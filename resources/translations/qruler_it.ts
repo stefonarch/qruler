@@ -24,7 +24,7 @@
         <translation>Bordo</translation>
     </message>
     <message>
-        <source>Foreground</source>
+        <source>Text</source>
         <translation>Testo</translation>
     </message>
     <message>
